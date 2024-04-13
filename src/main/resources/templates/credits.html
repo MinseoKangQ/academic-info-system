@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>학년별 이수 학점 조회</title>
+    <link rel="stylesheet" href="/css/credits.css">
+</head>
+<body>
+<h1>학년별 이수 학점 조회</h1>
+<hr>
+<div class="sidebar">
+    <div class="user-info" th:if="${username}">
+        <p th:text="${username} + '님 안녕하세요!'"></p>
+    </div>
+    <div class="button-group">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="로그아웃" class="button" />
+        </form>
+        <a href="/" class="button">홈</a>
+        <a th:href="@{/credits}" class="button">학년별 이수 학점 조회</a>
+        <a th:href="@{/enrollments}" class="button">수강 신청 하기</a>
+        <a th:href="@{/registered-enrollments}" class="button">수강 신청 조회</a>
+    </div>
+</div>
+<div class="content">
+    <table class="credit-table">
+        <tr>
+            <th>년도</th>
+            <th>학기</th>
+            <th>취득 학점</th>
+            <th>상세보기</th>
+        </tr>
+        <tr th:each="credit : ${creditsPerSemester}">
+            <td th:text="${credit[0]}"></td>
+            <td th:text="${credit[1]}"></td>
+            <td th:text="${credit[2]}"></td>
+            <td><button th:data-year="${credit[0]}" th:data-semester="${credit[1]}" onclick="showModal(this.getAttribute('data-year'), this.getAttribute('data-semester'))" class="detail-button">상세보기</button></td>
+        </tr>
+        <tr>
+            <td>총계</td>
+            <td></td>
+            <td th:text="${totalCredits}"></td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+
+<!-- 모달 창 -->
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3 th:text="'[' + ${selectedYear} + '-' + ${selectedSemester} + '] 수강 내역 상세'">[년도-학기] 수강 내역 상세</h3>
+        <table class="modal-table">
+            <tr>
+                <th>년도</th>
+                <th>학기</th>
+                <th>교과목명</th>
+                <th>교과구분</th>
+                <th>담당교수</th>
+                <th>학점</th>
+            </tr>
+            <tbody id="modalTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    function showModal(year, semester) {
+        const selectedYear = year;
+        const selectedSemester = semester;
+
+        // 수강 내역 조회 AJAX 요청
+        fetch(`/detail-credits?year=${year}&semester=${semester}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('modalTableBody');
+                tableBody.innerHTML = '';
+                data.forEach(course => {
+                    const row = `<tr>
+                                    <td>${course.year}</td>
+                                    <td>${course.semester}</td>
+                                    <td>${course.courseName}</td>
+                                    <td>${course.courseCategory}</td>
+                                    <td>${course.professor}</td>
+                                    <td>${course.credits}</td>
+                                 </tr>`;
+                    tableBody.innerHTML += row;
+                });
+
+                // 모달 표시
+                var modal = document.getElementById("myModal");
+                modal.style.display = "block";
+            })
+            .catch(error => console.error('Error:', error));
+
+        document.querySelector('.modal-content h3').innerText = '[' + selectedYear + '-' + selectedSemester + '] 수강 내역 상세';
+    }
+
+    // 모달 창 닫기
+    var modal = document.getElementById("myModal");
+    var span = document.getElementsByClassName("close")[0];
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>

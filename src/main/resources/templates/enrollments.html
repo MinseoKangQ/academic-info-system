@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>수강 신청 하기</title>
+    <link rel="stylesheet" href="/css/enrollments.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script>
+        $(document).ready(function() {
+            var csrfToken = $('meta[name="_csrf"]').attr('content');
+            var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+            $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader(csrfHeader, csrfToken);
+                }
+            });
+
+            $('.enrollment-button, .cancel-button').click(function(event) {
+                event.preventDefault();
+                var tr = $(this).closest('tr');
+                var actionUrl = $(this).hasClass('enrollment-button') ? '/enrollments/register' : '/enrollments/cancel';
+                var jsonData = {
+                    courseCode: tr.find('.course-code').text().trim(),
+                    courseName: tr.find('.course-name').text().trim(),
+                    credits: parseInt(tr.find('.credits').text().trim()),
+                    courseCategory: tr.find('.course-category').text().trim()
+                };
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(jsonData),
+                    success: function() {
+                        alert('성공적으로 수행되었습니다!');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                        alert('Error: ' + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+
+</head>
+<body>
+<h1>수강 신청 하기</h1>
+<hr>
+<div class="sidebar">
+    <div class="user-info" th:if="${username}">
+        <p th:text="${username} + '님 안녕하세요!'"></p>
+    </div>
+    <div class="button-group">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="로그아웃" class="button logout-button" />
+        </form>
+        <a href="/" class="button nav-button">홈</a>
+        <a th:href="@{/credits}" class="button nav-button">학년별 이수 학점 조회</a>
+        <a th:href="@{/enrollments}" class="button nav-button">수강 신청 하기</a>
+        <a th:href="@{/registered-enrollments}" class="button nav-button">수강 신청 조회</a>
+    </div>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+        <tr>
+            <th>교과목 코드</th>
+            <th>교과목명</th>
+            <th>담당교수</th>
+            <th>학점</th>
+            <th>과목 분류</th>
+            <th>수강신청</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="enrollment : ${enrollments}">
+            <td class="course-code" th:text="${enrollment.courseCode}"></td>
+            <td class="course-name" th:text="${enrollment.courseName}"></td>
+            <td th:text="${enrollment.professor}"></td>
+            <td class="credits" th:text="${enrollment.credits}"></td>
+            <td class="course-category" th:text="${enrollment.courseCategory.name()}"></td>
+            <td>
+                <div th:if="${!enrollment.registered}">
+                    <button class="button enrollment-button">신청</button>
+                </div>
+                <div th:if="${enrollment.registered}">
+                    <button class="button cancel-button">취소</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>수강 신청한 과목 조회</title>
+    <link rel="stylesheet" href="/css/registered_enrollments.css">
+</head>
+<body>
+<h1>수강 신청 조회</h1>
+<hr>
+<div class="sidebar">
+    <div class="user-info" th:if="${username}">
+        <p th:text="${username} + '님 안녕하세요!'"></p>
+    </div>
+    <div class="button-group">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="로그아웃" class="button logout-button" />
+        </form>
+        <a href="/" class="button nav-button">홈</a>
+        <a th:href="@{/credits}" class="button nav-button">학년별 이수 학점 조회</a>
+        <a th:href="@{/enrollments}" class="button nav-button">수강 신청 하기</a>
+        <a th:href="@{/registered-enrollments}" class="button nav-button">수강 신청 조회</a>
+    </div>
+</div>
+<div th:if="${enrollments.isEmpty()}" class="no-enrollments">
+    <p>수강 신청한 과목이 없습니다.</p>
+    <a href="/enrollments" class="button go-enroll">수강신청하러 가기</a>
+</div>
+<div th:unless="${enrollments.isEmpty()}" class="table-container">
+    <table>
+        <thead>
+        <tr>
+            <th>년도</th>
+            <th>학기</th>
+            <th>교과목명</th>
+            <th>교과구분</th>
+            <th>담당교수</th>
+            <th>학점</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="enrollment : ${enrollments}">
+            <td th:text="${enrollment.year}"></td>
+            <td th:text="${enrollment.semester}"></td>
+            <td th:text="${enrollment.courseName}"></td>
+            <td th:text="${enrollment.courseCategory}"></td>
+            <td th:text="${enrollment.professor}"></td>
+            <td th:text="${enrollment.credits}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
